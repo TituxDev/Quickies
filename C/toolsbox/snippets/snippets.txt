@@ -1,0 +1,428 @@
+===== PROJECT SNAPSHOT =====
+ROOT: snippets
+TOTAL_FILES: 2
+TOTAL_BYTES: 19569
+GENERATED_AT: 2026-03-02T20:48:07Z
+
+===== DIRECTORY INDEX =====
+snippets.h
+test.c
+
+===== FILE BEGIN =====
+PATH: snippets.h
+SIZE: 5889 bytes
+-----
+// Mcros index
+enum funtion_list{
+	_ISDIGIT ,		// Check if ASCII code is numeric character. Recive value( n ). Return boolean.
+	_ISALPHAU ,		// Check if ASCII code is upper case character. Recive value( n ). Return boolean.
+	_ISALPHAL ,		// Check if ASCII code is lower case character. Recive value( n ). Return boolean.
+	_ISCONTROL ,		// Check if ASCII code is control character. Recive value( i ). Return boolean.
+	_ISBLANK ,		// Check if ASCII code is blank character ( ' ' or '\n' or '\t' or '\r' or '\r' or '\b' or '\v' or '\a' or '\f'). Recive a value( n ). Return boolean.
+	_TOUINT ,		// Convert numeric character to decimal value. Recive numeric character( x ). Returns decimal value or 0 for not numeric characters.
+	_UPPER ,		// Convert lower case character to upper case. Recive a value( n ). Return upper case ASCII code or input value for not lower case characters. 
+	_LOWER ,		// Convert lower case character to lower case. Recive a value( n ). Return lower case ASCII code or input value for not upper case characters.
+	_ISNOTPAR ,		// Check if a value is not par. Recive value( n ). Return boolean.
+	_BIGGER ,		// Select biggest value. Recive two values( n , m ). Return biggest value.
+	_SMALLER ,		// Select smallest value. Recive twuo values( n , m ). Return smallest value.
+	_ABS ,			// Calculate absolute value. Recive value( n ). Return | value |.
+	_MAXVALUE ,		// Calculate the maximun value posible fot variable type. Recive a variable type( e ). Return value.
+	_ROUNDUP ,		// Calculate next value multiple of factor( j ) bigger than base number( i ). Recive two positive values( i , j ). Return next multiple value
+	_BOOLEAN ,		// Calculate boolean value. Recive value( n ). Return value 1 for not 0 input.
+	_SWITCH ,		// Switch boolean value of a variable. Recive variable( v ). Change varabiale value for its own negate value.
+	_SWAP ,			// Exchange the values from two variables. Recive variable type( e ) and two variables( v , w ). Change v value to w value and w value to v value.
+	_COUNT ,		// Calculate size of multidimensioanl array. Recive pointer( p ). Return positions in array.
+	_ERASE ,		// Set al positions in array to 0. Recive pointer( p ).
+	_COPY ,			// Copy array from source( p ) to target( q ). Recive two pointers( p , q ). Macro COPY is a for loop without instruccion end character ";" that use a local variable( unsigned char copy_i ) as array's index, then trasformations can be done durig the copy process.
+	_OFFSET ,		// Calculate the offset position of element( t ) from struct( r ). Recive struct type( r ) and struct's elemten( t ). Retun offset pointer value.
+	_BIT ,			// Set position bit. Recive positive value( i ). Returns bit flag value.
+	_ISBITUP ,		// Check if at least one up bit from a bit mask( m ) is up in base value( n ). Recive values( n , m ). Return bits that are up in both values.
+	_ISMASKON ,		// Check is all bits all up bits from a bit mask( m ) are up in base value( n ). Recive values( n , m ). Return boolean.
+	_UBITS ,		// Up bitmask( n ) in a variable( v ). Recive variable( v ) and bitmask( n ).
+	_DBITS ,		// Down bitmask( n ) in a variable( v ). Recive variable( v ) and bitmask( n ).
+	_SBITS ,		// Flip bitmask( n ) in a variable( v ). Recive variable( v ) and bitmask( n ).
+	_FUNCTION_LIST		// NUMBER OF MACROS LISTED
+} ;
+// Variable's definitions
+typedef unsigned char uchar;
+typedef unsigned int uint;
+typedef unsigned long custom_t;
+//MACROS
+// Math
+#define BOOLEAN( n )		( !!( n ) )
+#define ABS( n )		( ( n ) < 0 ? -( n ) : n )
+#define ISNOTPAR( n )		( ABS( n ) & 1 )
+#define BIGGER( n , m )		( ( ( n ) >= ( m ) ) ? n : m )
+#define SMALLER( n , m )	( ( ( n ) <= ( m ) ) ? n : m )
+#define MAXVALUE( e )		( ~( (custom_t)~0 << ( ( SMALLER( sizeof(custom_t) , sizeof( e ) ) ) * 8 - ( ( e )-1 < 0 ) - ( sizeof(custom_t) <= sizeof( e ) ) ) ) )
+#define ROUNDUP( n , m )	( ABS( m ) * ( ABS( ( n ) / ( m ) ) + BOOLEAN( ( n ) % ( m ) ) ) )
+// BitMasks
+#define BIT( n )		( 1 << ABS( n ) )
+#define ISBITUP( n , m )	( ( n ) & ( m ) )
+#define ISMASKON( n , m )	( !( ISBITUP( n , m ) ^ ( m ) ) )
+#define UBITS( v , n )		( v|= ( n ) )
+#define DBITS( v , n )		( v&= ~( n ) )
+#define SBITS( v , n )		( v^= ( n ) )
+#define COUNTBIT( ev )		( sizeof( ev ) * 8 )
+// ASCII
+#define ESC			127
+#define CAPS			32
+#define CAPSFLAG		5
+#define ISDIGIT( n )		( ( n ) <= '9' && ( n ) >= '0' )
+#define ISALPHAU( n )		( ( n ) >= 'A' && ( n ) <= 'Z' )
+#define ISALPHAL( n )		( ( n ) >= 'a' && ( n ) <= 'z' )
+#define ISCONTROL( n )		( ( n ) < ' ' || ( n ) == ESC )
+#define ISBLANK( n )		( ( n ) == ' ' || ( n ) == '\n' || ( n ) == '\t' || ( n ) == '\r' || ( n ) == '\r' || ( n ) == '\b' || ( n ) == '\v' || ( n ) == '\a' || ( n ) == '\f' )
+#define TOUINT( x )		( ISDIGIT( x ) ? ( x ) - '0' : 0 )
+#define UPPER( a )		( ISALPHAL( a ) ? DBITS( a , CAPS ) : a )
+#define LOWER( a )		( ISALPHAU( a ) ? UBITS( a , CAPS ) : a )
+// Variables manipulation
+#define SWITCH( v )		( v= !( v ) )
+#define SWAP( e , n , m )	if( sizeof( e ) == sizeof( n ) && sizeof( e ) == sizeof( m ) ) for( e s= ( n ) ; ( ( m ) != s ) ; n= ( m ) , m= s ) ; ;
+// Arrays
+#define COUNT( p )		( sizeof ( p ) / sizeof ( *p ) )
+#define ERASE( p )		for ( uchar i = (uchar)COUNT( p ) ; i ; p[--i]= 0 ) ;
+#define COPY( p , q )		for ( uchar copy_i= 0 , STOP= (uchar)COUNT( q ) ; ( copy_i < STOP ) && ( q[copy_i]= p[copy_i] ) ; copy_i++ )
+// Structs
+#define OFFSET( r , t )		( &( ( r * )0 )->t )
+//FUNCTIONS
+uint strtouint( uchar *string ){
+	uchar i ;
+	for ( i=0 ; ISDIGIT( *string ) ; string++ ) i= ( i*= 10 ) + TOUINT( *string ) ;
+	return i ;
+}
+int strtoint( uchar *string ){
+	uchar n ;
+	int i= strtouint( &string[n= *string == '-'] ) ;
+	return n ? -( i ) : i ;
+}
+uchar comparr( uchar *string_a , uchar *string_b , uint legth){
+	uint i ;
+	for ( i= 0 ;  i < legth && string_a[i] && string_b[i] && ( string_a[i] == string_b[i] ) ; i++ ) ;
+	return string_a[i] == string_b[i] ;
+}
+
+===== FILE END =====
+
+===== FILE BEGIN =====
+PATH: test.c
+SIZE: 13680 bytes
+-----
+#include "snippets.h"
+
+const uchar functionlist[_FUNCTION_LIST][20]={ 
+    [_ISDIGIT]=     "ISDIGIT" ,
+    [_ISALPHAU]=    "ISALPHAU" ,
+    [_ISALPHAL]=    "ISALPHAL" ,
+    [_ISCONTROL]=   "ISCONTROL" ,
+    [_ISBLANK]=     "ISBLANK" ,
+    [_TOUINT]=      "TOUINT" ,
+    [_UPPER]=       "UPPER" ,
+    [_LOWER]=       "LOWER" ,
+    [_ISNOTPAR]=    "ISNOTPAR" ,
+    [_BIGGER]=      "BIGGER" ,
+    [_SMALLER]=     "SMALLER" ,
+    [_ABS]=         "ABS" ,
+    [_MAXVALUE]=    "MAXVALUE" ,
+    [_ROUNDUP]=     "ROUNDUP" ,
+    [_BOOLEAN]=     "BOOLEAN" ,
+    [_SWITCH]=      "SWITCH" ,
+    [_SWAP]=        "SWAP" ,
+    [_COUNT]=       "COUNT" ,
+    [_ERASE]=       "ERASE" ,
+    [_COPY]=        "COPY" ,
+    [_OFFSET]=      "OFFSET" ,
+    [_BIT]=         "BIT" ,
+    [_ISBITUP]=     "ISBITUP" ,
+    [_ISMASKON]=    "ISMASKON" ,
+    [_UBITS]=       "UBITS" ,
+    [_DBITS]=       "DBITS" ,
+    [_SBITS]=       "SBITS"
+} ;
+const char answer[2][4]={
+    [0]=    "NO" ,
+    [1]=    "YES"
+} ;
+
+uchar copyargv[COUNT( *functionlist )] ;
+uchar functionselect ;
+long aux ;
+typedef struct{
+    char a ;
+    short b ;
+    int c ;
+    long d ;
+    long e[2] ;
+    char f ;
+} auxstruct ;
+void *structpointer[6] ;
+
+#include <stdio.h>
+const char strlegth= SMALLER( COUNT( *functionlist ) , COUNT( copyargv ) ) ;
+
+int main ( int argc , char **argv){
+    if ( argc < 2 ) return 255 ;
+    ERASE( copyargv ) ;
+    COPY( argv[1] , copyargv ) copyargv[copy_i]= UPPER( copyargv[copy_i] ) ;
+    for ( functionselect = 0 ; functionselect < _FUNCTION_LIST && !comparr( copyargv , ( uchar * )functionlist[functionselect] , strlegth ); functionselect++ ) ;
+    printf( "\n" ) ;
+    switch ( functionselect ){
+
+        case _ISDIGIT : 
+
+            if( ( aux= argc < 3 ) ) break ;
+            printf( "Is ASCII( %i ) a numeric character?: %s" , argv[2][0] , answer[ISDIGIT( argv[2][0] )] ) ;
+            break ;
+
+        case _ISALPHAU : 
+
+            if( ( aux= argc < 3 ) ) break ;
+            printf( "Is ASCII( %i ) an upper case character?: %s" , argv[2][0] , answer[ISALPHAU( argv[2][0] )] ) ;
+            break;
+
+        case _ISALPHAL :
+
+            if( ( aux= argc < 3 ) ) break ;
+            printf( "Is ASCII( %i ) a lower case character?: %s" , argv[2][0] , answer[ISALPHAL( argv[2][0] )] ) ;
+            break ;
+
+        case _ISCONTROL : 
+
+            if ( ( aux= argc < 3 ) ) break ;
+            aux= strtouint( (uchar *)argv[2] ) ;
+            printf( "Is a control character?: %s" , answer[ISCONTROL( aux )] ) ;
+            aux= 0 ;
+            break ;
+
+        case _ISBLANK :
+
+            if( ( aux= argc < 3 ) ) break ;
+            aux= strtouint( (uchar *)argv[2] ) ;
+            printf( "Is no printable character?: %s" , answer[ISBLANK( aux )] ) ;
+            aux= 0 ;
+            break ;
+
+        case _TOUINT :
+
+            if( ( aux= argc < 3 ) ) break ; 
+            printf( "Is ASCII( %i ) a numeric character?: %s\nConvert to decimal value: %i" , argv[2][0] , answer[ISDIGIT( argv[2][0] )] , TOUINT( argv[2][0] ) ) ;
+            break ;
+
+        case _UPPER :        
+        
+            if( ( aux= argc < 3 ) ) break ;
+            printf( "Is ASCII( %i ) a letter?: %s\nUpper case: %c" , argv[2][0] , answer[ISALPHAL( argv[2][0] ) || ISALPHAU( argv[2][0] )] , UPPER( argv[2][0] ) ) ;
+            break ;
+
+        case _LOWER :
+        
+            if( ( aux= argc < 3 ) ) break ;
+            printf( "Is ASCII( %i ) a letter?: %s\nLower case: %c" , argv[2][0] , answer[ISALPHAL( argv[2][0] ) || ISALPHAU( argv[2][0] )] , LOWER( argv[2][0] ) ) ;
+            return aux ;
+
+        case _ISNOTPAR :    
+        
+            if( ( aux= argc < 3 ) ) break ;
+            for( uchar i= argv[2][0] == '-' ; argv[2][i] ; i++ ) if( !ISDIGIT( argv[2][i] ) ) return 251 ;
+            printf( "Is even number?: %s" , answer[ISNOTPAR( strtoint( (uchar *)argv[2] ) )] ) ;
+            break ;
+
+        case _BIGGER :      
+            
+            if( ( aux= argc < 4 ) ) break ;
+            printf( "ASCII_A: %i\tASCII_B: %i\nBigger: %i", argv[2][0] , argv[3][0] , BIGGER( argv[2][0] , argv[3][0] ) ) ;
+            break ;
+
+        case _SMALLER :     
+        
+            if( ( aux= argc < 4 ) ) break ;
+            printf( "ASCII_A: %i\tASCII_B: %i\nSmaller: %i", argv[2][0] , argv[3][0] , SMALLER( argv[2][0] , argv[3][0] ) ) ;
+            break ;
+
+        case _ABS :         
+        
+            if( ( aux= argc < 3 ) ) break ;
+            for( uint i= argv[2][0] == '-' ; argv[2][i] ; i++ ) if( !ISDIGIT( argv[ 2 ][ i ] ) ) return 251 ;
+            printf( "Absolute value: %i" , ABS( strtoint( (uchar *)&argv[ 2 ][ 0 ] ) ) ) ;
+            break ;
+
+        case _MAXVALUE :    
+        
+            aux= 0 ;
+            printf( "\tSIGNED\t\t\tUNSIGNED" ) ;
+            printf( "\nchar:\t%lu\t\t\t%lu" , MAXVALUE( char ) , MAXVALUE( unsigned char ) ) ;
+            printf( "\nshort:\t%lu\t\t\t%lu" , MAXVALUE( short ) , MAXVALUE( unsigned short ) ) ;
+            printf( "\nint:\t%lu\t\t%lu" , MAXVALUE( int ) , MAXVALUE( unsigned int ) ) ;
+            printf( "\nfloat:\t%lu\t\tX" , MAXVALUE( float ) ) ;
+            printf( "\nlong:\t%lu\t%lu" , MAXVALUE( long ) , MAXVALUE( unsigned long ) ) ;
+            printf( "\ndouble:\t%lu\tX" , MAXVALUE( double ) ) ;
+            break ;
+
+        case _ROUNDUP :     
+        
+            if( ( aux= argc < 4 ) ) break ;
+            printf( "Next number that is multiple of base from factor: %i" , ROUNDUP( strtoint( (uchar *)argv[2] ) , strtoint( (uchar *)argv[3] ) ) ) ;
+            break ;
+
+        case _BOOLEAN :     
+        
+            if( ( aux= argc < 3 )) break ;
+            for( uint i= 0 ; argv[2][i] ; i++ ) if( !ISDIGIT( argv[2][i] ) ) return 251 ;
+            printf("Boolean value: %i" , BOOLEAN( strtouint( (uchar *)argv[2] ) ) ) ;
+            break ;
+        
+        case _SWITCH :      
+        
+            if( ( aux= argc < 3 ) ) break ;
+            aux= TOUINT( argv[2][0] ) ;
+            printf( "Switched value: %li" , SWITCH( aux ) ) ;
+            aux= 0 ;
+            break ;
+
+        case _SWAP :         
+        
+            if( ( aux= argc < 3 ) ) break ;
+            copyargv[0]= strtouint( (uchar *)argv[2] ) ;
+            copyargv[1]= strtouint( (uchar *)argv[3] ) ;
+            printf( "A: %u\tB: %u\n", copyargv[0] , copyargv[1] ) ;
+            SWAP( uchar , copyargv[0] , copyargv[1] ) ;
+            printf( "A: %u\tB: %u", copyargv[0] , copyargv[1] ) ;
+            break ;
+
+        case _COUNT :        
+        
+            aux= 0 ;
+            printf( "Macros listed: %lu\nMaximum characters per label: %lu" , COUNT( functionlist ) , COUNT( *functionlist ) ) ;
+            break ;
+
+        case _ERASE :
+        
+            if( ( aux= argc < 3 ) ) break ;
+            COPY( argv[2] , copyargv ) ;
+            printf( "\nVaules in array: " ) ;
+            for( uchar i= 0, STOP= ( uchar )COUNT( copyargv ) ; i < STOP ; printf( "%i," , copyargv[i++] ) ) ;
+            printf( "\nEraising data from array..." ) ;
+            ERASE( copyargv ) ;
+            printf( "\nValues in array: " ) ;
+            for( uchar i= 0, STOP= ( uchar )COUNT( copyargv ) ; i < STOP ; printf( "%i," , copyargv[i++] ) ) ;
+            break ;
+
+        case _COPY :
+        
+            if( ( aux= argc < 3 ) ) break ;
+            ERASE( copyargv ) ;
+            printf( "\nValues in array: " ) ;
+            for( uchar i= 0, STOP= ( uchar )COUNT( copyargv ) ; i < STOP ; printf( "%i," , copyargv[i++] ) ) ;
+            printf( "Copying from input to an array..." ) ;
+            COPY( argv[2] , copyargv ) ;
+            printf( "\nVaules in array: " ) ;
+            for( uchar i= 0, STOP= ( uchar )COUNT( copyargv ) ; i < STOP ; printf( "%i," , copyargv[i++] ) ) ;
+            break ;
+
+        case _OFFSET :       
+        
+            aux= 0 ; //Pendiente de evaluar si es posible contar lor miembros de una estructura
+            structpointer[0]= OFFSET( auxstruct , a ) ;
+            structpointer[1]= OFFSET( auxstruct , b ) ;
+            structpointer[2]= OFFSET( auxstruct , c ) ;
+            structpointer[3]= OFFSET( auxstruct , d ) ;
+            structpointer[4]= OFFSET( auxstruct , e ) ;
+            structpointer[5]= OFFSET( auxstruct , f ) ;
+            for( uint i= 0, STOP= COUNT( structpointer ) ; i < STOP ; printf( "\n%p", structpointer[i++] ) ) ;
+            break ;
+
+
+        case _BIT :          
+        
+            if( ( aux= argc < 3 ) ) break ;
+            for( uint j= 2 ; j < argc ; j++ ) for( uint i= 0 ; argv[j][i] ; i++ ) if( ISDIGIT( argv[j][i] ) )  copyargv[j - 2]= strtouint( (uchar *)argv[j] ); else return 251 ;
+            for( uint i= 0 ; i < argc - 2 ; copyargv[0]|= BIT( copyargv[i++] ) ) printf( "\nDecimal value : %i" , BIT( copyargv[i] ) ) ;
+            printf( "\n\nBITMASK value: %i" , copyargv[0] ) ;
+            break ;
+
+        case _ISBITUP :
+            
+            if( ( aux= argc < 4 ) ) break ;
+            for( uint j= 2 ; j < argc ; j++ ) for( uint i= 0 ; argv[j][i] ; i++ ) if( ISDIGIT( argv[j][i] ) )  copyargv[j - 2]= strtouint( (uchar *)argv[j] ); else return 251 ;
+            printf( "BITMASK_A:\t" ) ;
+            for( uint i= strtoint( (uchar *)argv[2] ) ; i ; i= i >> 1 ) printf( "%i" , ISBITUP( i , 1 ) ) ;
+            printf( "\nBITMASK_B:\t" ) ;
+            for( uint i= strtoint( (uchar *)argv[3] ) ; i ; i= i >> 1 ) printf( "%i" , ISBITUP( i , 1 ) ) ;
+            printf( "\nBIT_AND:\t" ) ;
+            for( uint i= ISBITUP( strtouint( (uchar *)argv[2] ) , strtouint( (uchar *)argv[3] ) ) ; i ; i= i >> 1 ) printf( "%i" , ISBITUP( i , 1 ) ) ;
+            printf( "\nDecimal value:\t%i" , ISBITUP( strtouint( (uchar *)argv[2] ) , strtouint( (uchar *)argv[3] ) ) ) ;
+            printf( "\nIs there at least one up bit coincidence? %s" , answer[BOOLEAN( ISBITUP( strtouint( (uchar *)argv[2] ) , strtouint( (uchar *)argv[3] ) ) )] ) ;
+            break ;
+
+        case _ISMASKON :    
+        
+            if( ( aux= argc < 4 ) ) break ;
+            for( uint j= 2 ; j < argc ; j++ ) for( uint i= 0 ; argv[j][i] ; i++ ) if( ISDIGIT( argv[j][i] ) )  copyargv[j - 2]= strtouint( (uchar *)argv[j] ); else return 251 ;
+            printf( "BITMASK_A:\t" ) ;
+            for( uint i= strtoint( (uchar *)argv[2] ) ; i ; i= i >> 1 ) printf( "%i" , ISBITUP( i , 1 ) ) ;
+            printf( "\nBITMASK_B:\t" ) ;
+            for( uint i= strtoint( (uchar *)argv[3] ) ; i ; i= i >> 1 ) printf( "%i" , ISBITUP( i , 1 ) ) ;
+            printf( "\nAre all the bits up in B  also up in A? %s" , answer[ISMASKON( strtouint( (uchar *)argv[2] ) , strtouint( (uchar *)argv[3] ) )] ) ;
+            break ;
+
+        case _UBITS :       
+        
+            if( ( aux= argc < 4 ) ) break ;
+            for( uint j= 2 ; j < argc ; j++ ) for( uint i= 0 ; argv[j][i] ; i++ ) if( ISDIGIT( argv[j][i] ) )  copyargv[j - 2]= strtouint( (uchar *)argv[j] ) ; else return 251 ;
+            printf( "BITMASK:\t" ) ;
+            for( uint i= strtoint( (uchar *)argv[2] ) ; i ; i= i >> 1 ) printf( "%i" , ISBITUP( i , 1 ) ) ;
+            printf( "\nUPMASK:\t\t" ) ;
+            for( uint i= strtoint( (uchar *)argv[3] ) ; i ; i= i >> 1 ) printf( "%i" , ISBITUP( i , 1 ) ) ;
+            printf( "\nFINAL MASK:\t" ) ;
+            aux= strtouint( (uchar *)argv[2] ) ;
+            for( UBITS( aux , strtouint( (uchar *)argv[3] ) ) ; aux ; aux= aux >> 1 ) printf( "%li", ISBITUP( aux , 1 ) ) ;
+            aux= strtouint( (uchar *)argv[2] ) ;
+            printf( "\nDecimal value:\t%li" , UBITS( aux , strtouint( (uchar *)argv[3] ) ) ) ;
+            aux= 0 ;
+            break ;
+
+        case _DBITS :       
+        
+            if( ( aux= argc < 4 ) ) break ;
+            for( uint j= 2 ; j < argc ; j++ ) for( uint i= 0 ; argv[j][i] ; i++ ) if( ISDIGIT( argv[j][i] ) )  copyargv[j - 2]= strtouint( (uchar *)argv[j] ) ; else return 251 ;
+            printf( "BITMASK:\t" ) ;
+            for( uint i= strtoint( (uchar *)argv[2] ) ; i ; i= i >> 1 ) printf( "%i" , ISBITUP( i , 1 ) ) ;
+            printf( "\nDOWNMASK:\t" ) ;
+            for( uint i= strtoint( (uchar *)argv[3] ) ; i ; i= (unsigned long)i >> 1 ) printf( "%i" , ISBITUP( i , 1 ) ) ;
+            printf( "\nFINAL MASK:\t" ) ;
+            aux= strtouint( (uchar *)argv[2] ) ;
+            for( DBITS( aux , strtouint( (uchar *)argv[3] ) ) ; aux ; aux= aux >> 1 ) printf( "%li" , ISBITUP( aux , 1 ) ) ;
+            aux= strtouint( (uchar *)argv[2] ) ;
+            printf( "\nDecimal value:\t%li" , DBITS( aux , strtouint( (uchar *)argv[3] ) ) ) ;
+            aux= 0 ;
+            break ;
+
+        case _SBITS :       
+        
+            if( ( aux= argc < 4 ) ) break ;
+            for( uint j= 2 ; j < argc ; j++ ) for( uint i= 0 ; argv[j][i] ; i++ ) if( ISDIGIT( argv[j][i] ) )  copyargv[j - 2]= strtouint( (uchar *)argv[j] ) ; else return 251 ;
+            printf( "BITMASK:\t" ) ;
+            for( uint i= strtoint( (uchar *)argv[2] ) ; i ; i= i >> 1 ) printf( "%i" , ISBITUP( i , 1 ) ) ;
+            printf( "\nFLIPMASK:\t" ) ;
+            for( uint i= strtoint( (uchar *)argv[3] ) ; i ; i= (unsigned long)i >> 1 ) printf( "%i" , ISBITUP( i , 1 ) ) ;
+            printf( "\nFINAL MASK:\t" ) ;
+            aux= strtouint( (uchar *)argv[2] ) ;
+            for( SBITS( aux , strtouint( (uchar *)argv[3] ) ) ; aux ; aux= aux >> 1 ) printf( "%li", ISBITUP( aux , 1 ) ) ;
+            aux= strtouint( (uchar *)argv[2] ) ;
+            printf( "\nDecimal value:\t%li" , SBITS( aux , strtouint( (uchar *)argv[3] ) ) ) ;
+            aux= 0 ;
+            break ;
+
+        case _FUNCTION_LIST :
+
+            return 254 ;
+        
+        default :            
+        
+            return 253 ;
+    }
+    printf( "\n\n" ) ;
+    return aux * 252 ;
+}
+===== FILE END =====
+
