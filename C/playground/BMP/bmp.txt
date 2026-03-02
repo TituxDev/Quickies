@@ -1,0 +1,303 @@
+===== PROJECT SNAPSHOT =====
+ROOT: BMP
+TOTAL_FILES: 4
+TOTAL_BYTES: 11009
+GENERATED_AT: 2026-03-02T20:41:29Z
+
+===== DIRECTORY INDEX =====
+bmp.c
+bmp.h
+transformations.c
+transformations.h
+
+===== FILE BEGIN =====
+PATH: bmp.c
+SIZE: 6355 bytes
+-----
+#include "bmp.h"
+#include "transformations.h"
+
+#define ESC 27
+
+struct termios old_termios , new_termios;
+void reset_termios( void ){
+    tcsetattr( 0 , TCSANOW , &old_termios );
+}
+struct winsize ws;
+void reset_screen( void ){
+    printf( "\033[m\033[H\033[J" );
+}
+
+void *ptr[2]= { NULL , NULL };
+void free_data( void ){
+    uint8_t idx= 0;
+    do{
+        if( ptr[idx] ) free( ptr[idx] );
+    } while( (idx= !idx) );
+    
+}
+
+int main( int argc , char *argv[] ){
+    if( argc < 2 ) return EXIT_FAILURE;
+    file_t bmp_file= { .name= argv[1] , .out= argc > 2 ? argv[2] : "output.bmp" };
+    
+    atexit( free_data );
+    if( !( bmp_file.file= fopen( bmp_file.name , "rb" ) )                                      ) return EXIT_FAILURE;
+    if( !fread( &bmp_file.header , sizeof( header_t ) , 1 , bmp_file.file )                    ) return EXIT_FAILURE;
+    if( bmp_file.header.signature != 0x4D42                                                    ) return EXIT_FAILURE;
+    size_t extra_size= bmp_file.header.offset - sizeof( header_t );
+    if( !( ptr[0]= bmp_file.extra= calloc( extra_size , 1 ) )                                  ) return EXIT_FAILURE;
+    if( !fread( bmp_file.extra , extra_size , 1 , bmp_file.file )                              ) return EXIT_FAILURE;
+    if( !( ptr[1]= bmp_file.bmp= calloc( bmp_file.header.image_size , 1 ) )                    ) return EXIT_FAILURE;
+    if( !fread( bmp_file.bmp , bmp_file.header.image_size , 1 , bmp_file.file )                ) return EXIT_FAILURE;
+    if( !( bmp_file.file= freopen( argc > 2 ? argv[2] : "output.bmp" , "wb" , bmp_file.file ) )) return EXIT_FAILURE;
+    if( !fwrite( &bmp_file.header , sizeof( header_t ) , 1 , bmp_file.file )                   ) return EXIT_FAILURE;
+    if( !fwrite( bmp_file.extra , extra_size , 1 , bmp_file.file )                             ) return EXIT_FAILURE;
+    if( !fwrite( bmp_file.bmp , bmp_file.header.image_size , 1 , bmp_file.file )               ) return EXIT_FAILURE;
+    rewind( bmp_file.file );
+
+    atexit( reset_screen );
+    ioctl( STDOUT_FILENO , TIOCGWINSZ , &ws );
+    printf( "\033[H\033[J\033[36m\033[4mFILES :\033[m" );
+    printf( "\n\t\033[35minput --> \033[m%s" , bmp_file.name );
+    printf( "\n\t\033[35moutput -> \033[m%s" , bmp_file.out );
+    printf( "\n\033[36m\033[4mHEADER :\033[m" );
+    size_t header_field_legth= 0;
+    for( size_t i= 0 ; i < TOTAL_HEADER_ATTRIBUTES ; i++ ) header_field_legth= header_field_legth > strlen( header_list[i].field ) ? header_field_legth : strlen( header_list[i].field );
+    for( header_index i= 0 ; i < TOTAL_HEADER_ATTRIBUTES ; i++ ){
+        printf( "\n\t\033[35m%s " , header_list[i].field );
+        for( size_t j= strlen( header_list[i].field ) , ch= (i & 1) ? '-' : '=' ; j <= header_field_legth ; j++ ) putchar( ch );
+        printf( "\033[m " );
+        switch ( i ){
+            case SIGNATURE:
+                printf( "%c%c" , *((uint8_t *)&bmp_file.header + header_list[i].offset) , *((uint8_t *)&bmp_file.header + header_list[i].offset + 1) );
+            break;
+            case PLANES: case BITS_PER_PIXEL:
+                printf( "%d" , *(uint16_t *)((uint8_t *)&bmp_file.header + header_list[i].offset) );
+            break;
+            default:
+                printf( "%d" , *(uint32_t *)((uint8_t *)&bmp_file.header + header_list[i].offset) );
+        }
+    }
+    printf( "\n\033[36m\033[4mEXTRA DATA :\n\033[m" );
+    size_t row_legth= ws.ws_col - 8;
+    row_legth/= 3;
+    for( size_t i= 0 ; i < bmp_file.header.header_size - sizeof( header_t ) ; ){
+        printf( "        " );
+        for( size_t j= 0 ; j <= row_legth && i < (bmp_file.header.header_size - sizeof( header_t )) ; j++ ){
+            if( bmp_file.extra[i] ) printf( "\033[35m");
+            printf( "%02X \033[m" , bmp_file.extra[i++] );
+        }
+        putchar( '\n' );
+    }
+    printf( "\033[36m\033[4mOFFSET :\n\033[m" );
+    for( size_t i= bmp_file.header.header_size - sizeof( header_t ) ; i < extra_size ; ){
+        printf( "        " );
+        for( size_t j= 0 ; j <= row_legth && i < extra_size ; j++ ){
+            if( bmp_file.extra ) printf( "\033[35m" );
+            printf( "%02X \033[m" , bmp_file.extra[i++] );
+        }
+        putchar( '\n' );
+    }
+    fflush( stdout );
+
+    if( tcgetattr( 0 , &old_termios ) || atexit( reset_termios ) ) return EXIT_FAILURE;
+    new_termios= old_termios;
+    new_termios.c_lflag&= ~( ECHO | ICANON | ISIG );
+    new_termios.c_iflag&= ~( IXON | IXOFF );
+    new_termios.c_cc[VMIN]= 0;
+    new_termios.c_cc[VTIME]= 0;
+    tcsetattr( 0 , TCSANOW , &new_termios );
+
+    fflush( stdin );
+    for( uint8_t key[6]= { 0 } , option= 1 ; option ; ){
+        if( read( STDIN_FILENO , key , sizeof( key ) ) ){
+            switch( key[0] ){
+                case '\n':
+                    goto EXECUTE;
+                case ESC:
+                    switch( key[1] ){
+                        case '[':
+                            switch( key[2] ){
+                                case 'A':
+                                    printf( "\r%i" , ++option);
+                                    fflush( stdout );
+                                break;
+                                case 'B':
+                                    printf( "\r%i " , option-= !!(option - 1) );
+                                    fflush( stdout );
+                                break;
+                                case 'C':
+                                break;
+                                case 'D':
+                                break;
+                                default:
+                                    option= 0;
+                            }
+                        break;
+                        default:
+                            option= 0;
+                    }
+                break;
+                default:
+                    option= 0;
+            }
+            memset( key , 0 , sizeof( key ) );
+        } EXECUTE:
+
+        if( key[0] == '\n' ) {
+            key[0]= 0;
+            apply( option - 1 , &bmp_file);
+            fseek( bmp_file.file , bmp_file.header.offset , SEEK_SET );
+            fwrite( bmp_file.bmp , bmp_file.header.image_size , 1 , bmp_file.file );
+            fflush( bmp_file.file );
+            rewind( bmp_file.file );
+            option = 1;
+        }
+    }
+
+    fclose( bmp_file.file );
+
+    return EXIT_SUCCESS;
+}
+===== FILE END =====
+
+===== FILE BEGIN =====
+PATH: bmp.h
+SIZE: 3432 bytes
+-----
+#ifndef BMP_H
+#define BMP_H
+
+#include <stdio.h>
+#include <unistd.h>
+#include <termios.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
+#include <termios.h>
+#include <stddef.h>
+#include <sys/ioctl.h>
+
+#pragma pack(push, 1)
+typedef struct bmp_header {
+    uint16_t signature;
+    uint32_t file_size;
+    uint32_t reserved;
+    uint32_t offset;
+    uint32_t header_size;
+    uint32_t width;
+    int32_t height;
+    uint16_t planes;
+    uint16_t bits_per_pixel;
+    uint32_t compression;
+    uint32_t image_size;
+    uint32_t x_pixels_per_meter;
+    uint32_t y_pixels_per_meter;
+    uint32_t colors_used;
+    uint32_t important_colors;
+} header_t;
+
+typedef struct bmp_file {
+    header_t header;
+    uint8_t *extra;
+    uint8_t *bmp;
+    FILE *file;
+    uint8_t *name;
+    uint8_t *out;
+} file_t;
+#pragma pack(pop)
+
+typedef enum {
+    SIGNATURE,
+    FILE_SIZE,
+    RESERVED,
+    OFFSET,
+    HEADER_SIZE,
+    WIDTH,
+    HEIGHT,
+    PLANES,
+    BITS_PER_PIXEL,
+    COMPRESSION,
+    IMAGE_SIZE,
+    X_PIXELS_PER_METER,
+    Y_PIXELS_PER_METER,
+    COLORS_USED,
+    IMPORTANT_COLORS,
+
+    TOTAL_HEADER_ATTRIBUTES
+} header_index;
+
+static struct             { const char *field   ; size_t offset                           ; size_t size                                 ;}header_list
+[TOTAL_HEADER_ATTRIBUTES]={
+    [SIGNATURE          ]={ "signature"         , offsetof( header_t , signature         ), sizeof( ((header_t *)0)->signature         ) },
+    [FILE_SIZE          ]={ "file size"         , offsetof( header_t , file_size         ), sizeof( ((header_t *)0)->file_size         ) },
+    [RESERVED           ]={ "reserved"          , offsetof( header_t , reserved          ), sizeof( ((header_t *)0)->reserved          ) },
+    [OFFSET             ]={ "offset"            , offsetof( header_t , offset            ), sizeof( ((header_t *)0)->offset            ) },
+    [HEADER_SIZE        ]={ "header size"       , offsetof( header_t , header_size       ), sizeof( ((header_t *)0)->header_size       ) },
+    [WIDTH              ]={ "width"             , offsetof( header_t , width             ), sizeof( ((header_t *)0)->width             ) },
+    [HEIGHT             ]={ "height"            , offsetof( header_t , height            ), sizeof( ((header_t *)0)->height            ) },
+    [PLANES             ]={ "planes"            , offsetof( header_t , planes            ), sizeof( ((header_t *)0)->planes            ) },
+    [BITS_PER_PIXEL     ]={ "bits per pixel"    , offsetof( header_t , bits_per_pixel    ), sizeof( ((header_t *)0)->bits_per_pixel    ) },
+    [COMPRESSION        ]={ "compression"       , offsetof( header_t , compression       ), sizeof( ((header_t *)0)->compression       ) },
+    [IMAGE_SIZE         ]={ "image_size"        , offsetof( header_t , image_size        ), sizeof( ((header_t *)0)->image_size        ) },
+    [X_PIXELS_PER_METER ]={ "x pixels per meter", offsetof( header_t , x_pixels_per_meter), sizeof( ((header_t *)0)->x_pixels_per_meter) },
+    [Y_PIXELS_PER_METER ]={ "y pixels per meter", offsetof( header_t , y_pixels_per_meter), sizeof( ((header_t *)0)->y_pixels_per_meter) },
+    [COLORS_USED        ]={ "colors used"       , offsetof( header_t , colors_used       ), sizeof( ((header_t *)0)->colors_used       ) },
+    [IMPORTANT_COLORS   ]={ "important colors"  , offsetof( header_t , important_colors  ), sizeof( ((header_t *)0)->important_colors  ) },
+};
+
+#endif // BMP_h
+===== FILE END =====
+
+===== FILE BEGIN =====
+PATH: transformations.c
+SIZE: 548 bytes
+-----
+#include "transformations.h"
+
+size_t negative( file_t *file , size_t index ){
+    file->bmp[index]= ~file->bmp[index];
+    return 1;
+}
+size_t high_contrast( file_t *file ,  size_t index ){
+    file->bmp[index]= file->bmp[index] > 125 ? 255 : 0;
+    return 1;
+}
+
+int apply( enum transformations_e transformation , file_t *file ) {
+    if( transformation < TOTAL_TRANFORMATIONS ) for( size_t i= 0 ; i < file->header.image_size ; i+= tranformatons_list[transformation].transformation( file , i ) );
+    return transformation >= TOTAL_TRANFORMATIONS;
+}
+===== FILE END =====
+
+===== FILE BEGIN =====
+PATH: transformations.h
+SIZE: 674 bytes
+-----
+#ifndef TRANSFORMATIONS_H
+#define TRANSFORMATIONS_H
+
+#include "bmp.h"
+
+typedef enum transformations_e {
+    NEGATIVE,
+    HIGH_CONTRAST,
+
+    TOTAL_TRANFORMATIONS
+} transformations_labels;
+
+size_t negative( file_t * , size_t );
+size_t high_contrast( file_t * , size_t );
+
+static struct          { uint8_t *name  ; size_t (*transformation)( file_t * , size_t );}tranformatons_list
+[TOTAL_TRANFORMATIONS]={
+    [NEGATIVE        ]={ "negative"     , negative                                      },
+    [HIGH_CONTRAST   ]={ "high contrast", high_contrast                                 },
+};
+
+extern int apply( enum transformations_e  , file_t * );
+
+#endif // TRANFORMATIONS_H
+===== FILE END =====
+
