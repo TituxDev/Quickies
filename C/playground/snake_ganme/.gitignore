@@ -1,4 +1,4 @@
 *
 !.gitignore
-!game/c
+!game.c
 !README*
